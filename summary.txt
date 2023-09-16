@@ -1,0 +1,23 @@
+Overview
+Creating a full front end back end connect4 game. Should display a connect 4 board. Clicking on screen causes chip of the correct color to fall into that column on the board. Game stops when a color has won. 
+Classes 
+backEnd board
+frontEnd Board
+chip(Enum)
+Class Chip,
+Enum Class
+Red and Black subtypes
+
+
+BackEnd Board
+Methods
+placeChip(column: int, color: EnumColors)
+Places chip of that color in that column 
+Methods
+victoryCheck
+Check if anyone has won. If so, the game is over.
+FrontEndBoard
+Methods
+Click
+Detects which column was clicked then places chip of correct color in said column
+
