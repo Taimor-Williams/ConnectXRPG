@@ -9,8 +9,8 @@ class BackEndBoard:
     """
     AF(array, victoryLength) = a board of length and height 2*victoryLength +1
                                 where array[i], 0 < i < 2*victoryLength +1 is a column 
-                                in the board. The board is filled with chips where 
-                                each chip has another below it or is at the bottom of the board.
+                                in the board. The columns are filled with chips where 
+                                each chip has another below it or is at the bottom of the column.
 
     rep invarient:
         for all i,  0 < i < 2*victoryLength +1, array[i] is of length 0 to 2*victoryLength +1

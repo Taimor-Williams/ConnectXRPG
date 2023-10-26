@@ -3,7 +3,7 @@ from backEndBoard_Module import *
 from chip_Module import *
 import os, sys, glob
 from enum import Enum
-import tkinter as tk
+from button_Module import *
 
 class Colors(Enum):
     """
@@ -40,20 +40,24 @@ class FrontEndGameBoard:
             restart():
     """
     board: BackEndBoard
-    window: pygame.surface.Surface
-    width: int
-    height: int
-    aspectRatio: int
+    # window: pygame.surface.Surface
+    rect: pygame.Rect
     curChip: InterFaceChip
+    aspectRatio: int
 
-    def __init__(self, board: BackEndBoard, window: pygame.Surface) -> None:
+    def __init__(self, board: BackEndBoard, window: pygame.Surface, squareSize = 60) -> None:
         self.board = board
-        self.aspectRatio = 40
+        self.aspectRatio = squareSize
         self.width = len(board.array)*self.aspectRatio
         self.height = len(board.array)*self.aspectRatio
+        x = 0
+        y = 0
         self.rect = pygame.Rect(x, y, self.width, self.height)
-        self.window = window
+        # self.window = window
         self.curChip = BlackChip()
+        self.colorIdle = Colors.blue.value
+        self.colorHover = Colors.green.value
+        
     
     def clicked(self, mousePos: tuple[int,int]):
         """
@@ -73,20 +77,29 @@ class FrontEndGameBoard:
         self._nextChip()
         self.saveGame()
 
-    def drawBoard(self):
+    def drawBoard(self, screen: pygame.surface.Surface, mousePos: tuple[int,int]):
         """
         @effects, draws the gameboard should look like a bunch of lines outlining each square
         """
-        
+        color = self.colorIdle
+        if self.rect.collidepoint(mousePos):
+            color = self.colorHover
+        pygame.draw.rect(screen, color, self.rect)
+        # font = pygame.font.Font(None, 30)
+        # fontColor = (255, 255, 255)
+        # text_surface = font.render(self.text, True, fontColor)
+        # text_rect = text_surface.get_rect(center=self.rect.center)
+        # screen.blit(text_surface, text_rect)
+
         for col in range(len(self.board.array)+1):
             # draw vert lines
-            pygame.draw.line(self.window, Colors.blue.value, (self.aspectRatio*col,0), 
+            pygame.draw.line(screen, Colors.blue.value, (self.aspectRatio*col,0), 
             (self.aspectRatio*col, self.height))
             # draw horizontal lines
-            pygame.draw.line(self.window, Colors.blue.value, (0,self.aspectRatio*col), 
+            pygame.draw.line(screen, Colors.blue.value, (0,self.aspectRatio*col), 
             (self.width, self.aspectRatio*col))
     
-    def drawChips(self):
+    def drawChips(self, screen: pygame.surface.Surface):
         """
         @effects, draws the chips in the board
         """
@@ -95,10 +108,10 @@ class FrontEndGameBoard:
                 # have to flip curRow to put the chips on bottom of the grid
                 curRow = len(self.board.array)-row-1
                 if isinstance(chip, RedChip):
-                    pygame.draw.circle(self.window, Colors.red.value, (col*self.aspectRatio+self.aspectRatio/2,
+                    pygame.draw.circle(screen, Colors.red.value, (col*self.aspectRatio+self.aspectRatio/2,
                     curRow*self.aspectRatio+self.aspectRatio/2), self.aspectRatio/2, 1)
                 if isinstance(chip, BlackChip):
-                    pygame.draw.circle(self.window, Colors.green.value, (col*self.aspectRatio+self.aspectRatio/2,
+                    pygame.draw.circle(screen, Colors.green.value, (col*self.aspectRatio+self.aspectRatio/2,
                     curRow*self.aspectRatio+self.aspectRatio/2), self.aspectRatio/2, 1)
     
     def victoryCheck(self)->bool:
@@ -151,36 +164,6 @@ class FrontEndGameBoard:
         self.board = BackEndBoard(self.board.victoryLength)
         self.curChip = BlackChip()
 
-    def saveGame(self):
-        """
-        @effects, saves the current game to a text file. Where the file is in the format
-        example code:
-
-        4, (B,1),(R,2),(B,3),(R,1)
-        where 4 is the victoryLength
-        and every tuple is a move that was made
-        """
-
-        gameStr = self.board.saveGame()
-        with open('readme.txt', 'w') as f:
-            f.write(gameStr)
-        
-    def loadGame(self):
-        """
-        @effects, load game board from saved games
-        """
-        # for filename in os.listdir(os.getcwd()):
-        #     print(filename)
-        # good code
-        folder_path = '/Users/taimorwilliams/Desktop/Documents/Summer 2023/Connect4'
-        for filename in glob.glob(os.path.join(folder_path, '*.htm')):
-            with open(filename, 'r') as f:
-                text = f.read()
-                print (filename)
-                print (len(text))
-      # do your stuff
-
-        
     # private functions
     
     def _convertMouseToBoard(self, mousePos: tuple[int,int])-> tuple[int,int]:
@@ -214,124 +197,8 @@ class FrontEndGameBoard:
             return False
         return True
 
-class Button:
-    """
-    Abstraction Function(colorIdle, colorHover, text, rect) = 
-        a clickable button that performs some action "action" when clicked.
-        button exist within rectangle "rect", has idle color "colorIdle" 
-        and hover color "colorHover". Button displays text "text"
+  
 
-    Rep Invarient:
-        true
-
-    Protection from rep exposure:
-        draw():
-            @params screen, mutable surface object however the surface object 
-            has no reference to change the button
-            @params mousePos, immutable tuple
-            @returns void
-        isClicked():
-            @params, void
-            @returns bool, immutable
-    """
-
-    colorIdle: tuple[int,int,int]
-    colorHover: tuple[int,int,int]
-    text: str
-    rect: pygame.Rect
-
-    def __init__(self, x, y, width, height, text, colorIdle, colorHover, action):
-        self.rect = pygame.Rect(x, y, width, height)
-        self.text = text
-        self.colorIdle = colorIdle
-        self.colorHover = colorHover
-        self.action = action
-
-    def draw(self, screen: pygame.surface.Surface, mousePos: tuple[int,int]):
-        """
-        @params screen, surface we are drawing button on
-        @params mousePos, if mouse is currently above button then show highlight color
-        """
-        color = self.colorIdle
-        if self.rect.collidepoint(mousePos):
-            color = self.colorHover
-        pygame.draw.rect(screen, color, self.rect)
-        font = pygame.font.Font(None, 30)
-        fontColor = (255, 255, 255)
-        text_surface = font.render(self.text, True, fontColor)
-        text_rect = text_surface.get_rect(center=self.rect.center)
-        screen.blit(text_surface, text_rect)
-
-    def _isClicked(self, mousePos)->bool:
-        """
-        @params mousePos
-        @returns bool, true mouse is currently colliding with button
-        """
-        return self.rect.collidepoint(mousePos)
-    
-    def clicked(self, mousePos: tuple[int,int]):
-        """
-        @effects performs action the button is made for
-        """
-        if not self._isClicked(mousePos):
-            return
-        
-        self.action()
-        
-class SingletonPattern():
-    """
-    an encapsalating class that does everything 
-    it should format everything correctly
-    """
-
-# button functions
-def restart_function():
-    # Reset game state or perform restart actions here
-    curSize = frontEndgameBoard.board.victoryLength
-    frontEndgameBoard = FrontEndGameBoard(BackEndBoard(curSize), window)
-
-# setup constants
-
-pygame.init()
-circleX = 100
-circleY = 100
-radius = 10
-WINDOW_HEIGHT = 620
-WINDOW_WIDTH = 620
-window = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
-pygame.display.set_caption('Connect4 Project')
-running=True
-victory = False
-gameBoard = BackEndBoard(6)
-frontEndgameBoard = FrontEndGameBoard(gameBoard, window)
-restart_button = Button(350, 450, 100, 50, "Restart", (0, 100, 0), (0, 200, 0), restart_function)
-
-# the ending is the best escape
-
-while running:
-    window.fill((0, 0, 0))
-    frontEndgameBoard.drawBoard()
-    frontEndgameBoard.drawChips()
-    restart_button.draw(window, pygame.mouse.get_pos())
-    frontEndgameBoard.loadGame()
-
-    # events
-    for event in pygame.event.get():
-        if event.type==pygame.QUIT:
-            running=False
-        if event.type ==pygame.MOUSEBUTTONDOWN:
-            x,y = pygame.mouse.get_pos()
-            frontEndgameBoard.clicked((x,y))
-            victory = frontEndgameBoard.victoryCheck()
-            restart_button.clicked((x,y))
-        # Show popup when needed
-        if victory:  # Replace with your condition
-            frontEndgameBoard.showPopup("This is a popup!")
-        
-            
-    pygame.display.flip()
-pygame.quit()
-    
 
 
         
