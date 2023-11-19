@@ -1,6 +1,9 @@
 from button_Module import *
 from frontEndBoard import *
 import tkinter as tk
+import csv  
+from tkinter.filedialog import askdirectory
+import pandas as pd
 
 class SingletonPattern():
     """
@@ -12,13 +15,13 @@ class SingletonPattern():
     nextButton: "Button"
     saveButton: "Button"
     loadButton: "Button"
-    gameFrame: "FrontEndGameBoard"
-    titleDisplay: "tileDisplay"
+    frontEndgameBoard: "FrontEndGameBoard"
+    titleDisplay: "TitleDisplay"
     window: pygame.Surface
 
     def __init__(self) -> None:
         # game variables
-        boardSize = 6
+        boardSize = 4
         SquareSize = 60
         AspectRatio = 3/2
         WINDOW_HEIGHT = (boardSize*2+1)*SquareSize
@@ -31,12 +34,17 @@ class SingletonPattern():
         # buttons
         xPositionButtons = WINDOW_HEIGHT+(WINDOW_WIDTH-WINDOW_HEIGHT)/2
         yPositionButtons = WINDOW_HEIGHT/6
-        self.restartButton = Button(xPositionButtons-3*SquareSize/2, 2*yPositionButtons-1.5*SquareSize/2, 3*SquareSize, 1.5*SquareSize, "Restart", (0, 100, 0), (0, 200, 0), restart_function)
-        self.optionsButton = Button(xPositionButtons-3*SquareSize/2, 3*yPositionButtons-1.5*SquareSize/2, 3*SquareSize, 1.5*SquareSize, "Options", (0, 100, 0), (0, 200, 0), restart_function)
-        self.loadButton = Button(xPositionButtons-3*SquareSize/2, 4*yPositionButtons-1.5*SquareSize/2, 3*SquareSize, 1.5*SquareSize, "load", (0, 100, 0), (0, 200, 0), restart_function)    
-        self.saveButton = Button(xPositionButtons-3*SquareSize/2, 5*yPositionButtons-1.5*SquareSize/2, 3*SquareSize, 1.5*SquareSize, "save", (0, 100, 0), (0, 200, 0), restart_function)
-
         
+        self.titleDisplay = TitleDisplay(WINDOW_HEIGHT, 0, WINDOW_WIDTH-WINDOW_HEIGHT, 
+                                    2*SquareSize)
+        self.restartButton = Button(xPositionButtons-3*SquareSize/2, 2*yPositionButtons-1.5*SquareSize/2, 3*SquareSize, 
+                                    1.5*SquareSize, "Restart", Colors.darkGreen.value, Colors.green.value)
+        self.optionsButton = Button(xPositionButtons-3*SquareSize/2, 3*yPositionButtons-1.5*SquareSize/2, 3*SquareSize,
+                                     1.5*SquareSize, "Options", Colors.darkGreen.value, Colors.green.value)
+        self.loadButton = Button(xPositionButtons-3*SquareSize/2, 4*yPositionButtons-1.5*SquareSize/2, 3*SquareSize, 
+                                 1.5*SquareSize, "load", Colors.darkGreen.value, Colors.green.value)
+        self.saveButton = Button(xPositionButtons-3*SquareSize/2, 5*yPositionButtons-1.5*SquareSize/2, 3*SquareSize, 
+                                 1.5*SquareSize, "save", Colors.darkGreen.value, Colors.green.value)
     
     def draw(self):
         """
@@ -47,6 +55,7 @@ class SingletonPattern():
         self.window.fill((0, 0, 0))
         self.frontEndgameBoard.drawBoard(self.window, pygame.mouse.get_pos())
         self.frontEndgameBoard.drawChips(self.window)
+        self.titleDisplay.draw(self.window, pygame.mouse.get_pos())
         self.restartButton.draw(self.window, pygame.mouse.get_pos())
         self.optionsButton.draw(self.window, pygame.mouse.get_pos())
         self.saveButton.draw(self.window,pygame.mouse.get_pos())
@@ -57,46 +66,78 @@ class SingletonPattern():
         @effects, calls the clicked function for all buttons and frames
         """
         self.frontEndgameBoard.clicked(mousePos)
-        self.restartButton.clicked(mousePos)
-        self.optionsButton.clicked(mousePos)
-        self.saveButton.clicked(mousePos)
-        self.loadButton.clicked(mousePos)
+        # buttons
+        if self.restartButton.isClicked(mousePos):
+            self._restartButtonEffect()
+        if self.optionsButton.isClicked(mousePos):
+            print("help")
+        if self.saveButton.isClicked(mousePos):
+            self.saveGame()
+        if self.loadButton.isClicked(mousePos):
+            self.loadGame()
+        
+    # popups
+
+    # buttonEffects
+    def _restartButtonEffect(self):
+        """
+        
+        """
+        self.frontEndgameBoard.restart()
 
     def saveGame(self):
         """
-        @effects, saves the current game to a text file. Where the file is in the format
+        @effects, saves the current game to a csv file. Where the file is in the format
         example code:
 
         4, (B,1),(R,2),(B,3),(R,1)
         where 4 is the victoryLength
         and every tuple is a move that was made
         """
+        fields = ['Move', 'VictoryLength'] 
+        filename = 'savedGames/Game.csv'
+        rows = []
+        for move in self.frontEndgameBoard.board.moveList:
+            rows.append([move, self.frontEndgameBoard.board.victoryLength])
 
-        gameStr = self.board.saveGame()
-        with open('readme.txt', 'w') as f:
-            f.write(gameStr)
+        with open(filename, 'w') as csvfile:  
+        # creating a csv writer object  
+            csvwriter = csv.writer(csvfile)  
+        # writing the fields  
+            csvwriter.writerow(fields)  
+        # writing the data rows  
+            csvwriter.writerows(rows) 
+            
+
         
     def loadGame(self):
         """
         @effects, load game board from saved games
         """
-        # for filename in os.listdir(os.getcwd()):
-        #     print(filename)
-        # good code
-        folder_path = '/Users/taimorwilliams/Desktop/Documents/Summer 2023/Connect4'
-        for filename in glob.glob(os.path.join(folder_path, '*.htm')):
-            with open(filename, 'r') as f:
-                text = f.read()
-                print (filename)
-                print (len(text))
-
-
-
-# button functions
-def restart_function():
-    """
-    reset game state
-    """
+        self._restartButtonEffect()
+        # load the csv file
+        folder_path = '/Users/taimorwilliams/Desktop/Documents/Summer 2023/Connect4/savedGames/Game.csv'
+        # opening the CSV file
+        # with open('savedGames/Game.csv', mode ='r')as file:
+        #     # reading the CSV file
+        #     csvFile = csv.reader(file)
+        #     # displaying the contents of the CSV file
+        #     for lines in csvFile:
+        #         print(lines)
+        
+        # reading the CSV file
+        csvFile = pd.read_csv('savedGames/Game6.csv')
+ 
+        # displaying the contents of the CSV file
+        #
+        moves = csvFile.loc[:,'Move']
+        #
+        for move in moves:
+            color = move[2]
+            number = move[6]
+            self.frontEndgameBoard.autoClicked((color,number))
+    
+        
 
 # setup constants
 

@@ -1,4 +1,5 @@
 from chip_Module import *
+import math
 
 class BackEndBoard:
 
@@ -11,6 +12,7 @@ class BackEndBoard:
                                 where array[i], 0 < i < 2*victoryLength +1 is a column 
                                 in the board. The columns are filled with chips where 
                                 each chip has another below it or is at the bottom of the column.
+                                moveList is a record of the moves made in the game so far. 
 
     rep invarient:
         for all i,  0 < i < 2*victoryLength +1, array[i] is of length 0 to 2*victoryLength +1
@@ -108,7 +110,57 @@ class BackEndBoard:
                     returnStr = returnStr+ '\n'
         return returnStr
     
-    def saveGame(self):
+    def showBoardList(self)-> [int]:
+        """
+        @params void
+        @returns a list representation of graph
+        example reps: 
+            empty board victoryLength == 2
+
+            empty board victoryLength == 2, red victory
+                0   0   0   0   0
+                0   0   0   0   0
+                0   0   0   0   0
+                0   0   0   0   2
+                0   0   0   1   2
+        """
+        returnList = []
+        for _ in range(2*self.victoryLength+1):
+            returnList.append([])
+        strBoard = self.showBoard()
+        strBoardList = strBoard.split()
+        count = 0
+        while count < (2*self.victoryLength+1)*(2*self.victoryLength+1):
+            for curStr in strBoardList:
+                # print(math.floor(count/(2*self.victoryLength+1)))
+                curList = returnList[math.floor(count/(2*self.victoryLength+1))]
+                rowList =curList
+                if curStr == 'empty':
+                    rowList.append(0)
+                    count +=1
+                if curStr == 'R':
+                    rowList.append(2)
+                    count +=1
+                if curStr == 'B':
+                    rowList.append(1)
+                    count +=1
+        return returnList
+    
+    def saveGameStr(self):
+        """
+        @effects, saves the current game to a text file. Where the file is in the format
+        example code:
+
+        4, (B,1),(R,2),(B,3),(R,1)
+        where 4 is the victoryLength
+        and every tuple is a move that was made
+        """
+        gameStr = str(self.victoryLength)
+        for move in self.moveList:
+            gameStr += f',{str(move)}'
+        return gameStr
+    
+    def saveGameCSV(self):
         """
         @effects, saves the current game to a text file. Where the file is in the format
         example code:
@@ -270,4 +322,11 @@ class BackEndBoard:
                 curCol = curCol + 1
                 curRow = curRow - 1          
         return False
+
+
+# board = BackEndBoard(2)
+# board.placeChip(0,RedChip())
+# board.placeChip(0,RedChip())
+# print(board.showBoard())
+# print(board.showBoardList())
     

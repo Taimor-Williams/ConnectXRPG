@@ -4,17 +4,7 @@ from chip_Module import *
 import os, sys, glob
 from enum import Enum
 from button_Module import *
-
-class Colors(Enum):
-    """
-    stores the colors
-    """
-    red = (200,0,0)
-    blue = (0,0,255)
-    white = (255,255,255)
-    green = (0,255,0)
-    orange= (200, 100, 0)
-    black = (0,0,0)
+from color_Module import *
 
 class FrontEndGameBoard:
     """
@@ -55,8 +45,8 @@ class FrontEndGameBoard:
         self.rect = pygame.Rect(x, y, self.width, self.height)
         # self.window = window
         self.curChip = BlackChip()
-        self.colorIdle = Colors.blue.value
-        self.colorHover = Colors.green.value
+        self.colorIdle = Colors.grey.value
+        self.colorHover = Colors.grey.value
         
     
     def clicked(self, mousePos: tuple[int,int]):
@@ -75,7 +65,20 @@ class FrontEndGameBoard:
         curCol,curRow = self._convertMouseToBoard(mousePos)
         self.board.placeChip(curCol, self.curChip)
         self._nextChip()
-        self.saveGame()
+    
+    def autoClicked(self, curInput: tuple[str, int]):
+        """
+        @param curInput, 
+        @effects, 
+        """
+        color = curInput[0]
+        number = int(curInput[1])
+        if color == 'B':
+            self.curChip = BlackChip()
+        else:
+            self.curChip = RedChip()
+        self.board.placeChip(number, self.curChip)
+        self._nextChip()
 
     def drawBoard(self, screen: pygame.surface.Surface, mousePos: tuple[int,int]):
         """
