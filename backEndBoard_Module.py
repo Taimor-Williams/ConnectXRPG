@@ -34,7 +34,7 @@ class BackEndBoard:
         self.victoryLength = victoryLength
         self.array = []
         self.moveList = []
-        for _ in range(2*self.victoryLength+1):
+        for _ in range(2*self.victoryLength-1):
             self.array.append([])
 
         
@@ -45,7 +45,7 @@ class BackEndBoard:
         @exceptions, if column is full do nothing
         """
         curColumn = self.array[column]
-        if len(curColumn) == 2*self.victoryLength+1:
+        if len(curColumn) == 2*self.victoryLength-1:
             return
         curColumn.append(chip)
         self.moveList.append((str(chip), column))
@@ -97,9 +97,9 @@ class BackEndBoard:
         """
         returnStr:str = ""
         # returnStr = f'{self.width}x{self.height}\n'
-        for row in range(2*self.victoryLength+1):
+        for row in range(2*self.victoryLength-1):
             curRow = 2*self.victoryLength - row
-            for col in range(2*self.victoryLength+1):
+            for col in range(2*self.victoryLength-1):
                 curCol = col
                 # how to make sure something is there
                 if len(self.array[curCol])> curRow and len(self.array[curCol])!= 0:
@@ -125,15 +125,15 @@ class BackEndBoard:
                 0   0   0   1   2
         """
         returnList = []
-        for _ in range(2*self.victoryLength+1):
+        for _ in range(2*self.victoryLength-1):
             returnList.append([])
         strBoard = self.showBoard()
         strBoardList = strBoard.split()
         count = 0
-        while count < (2*self.victoryLength+1)*(2*self.victoryLength+1):
+        while count < (2*self.victoryLength-1)*(2*self.victoryLength-1):
             for curStr in strBoardList:
-                # print(math.floor(count/(2*self.victoryLength+1)))
-                curList = returnList[math.floor(count/(2*self.victoryLength+1))]
+                # print(math.floor(count/(2*self.victoryLength-1)))
+                curList = returnList[math.floor(count/(2*self.victoryLength-1))]
                 rowList =curList
                 if curStr == 'empty':
                     rowList.append(0)
@@ -226,7 +226,7 @@ class BackEndBoard:
         for row in range(len(self.array)):
             curPos = (0,row)
             count = 0
-            while curPos[0]<2*self.victoryLength+1 and curPos[1]<2*self.victoryLength+1:
+            while curPos[0]<2*self.victoryLength-1 and curPos[1]<2*self.victoryLength-1:
                 # empty case 
                 col = curPos[0]
                 curRow = curPos[1]
@@ -249,7 +249,7 @@ class BackEndBoard:
         for col in range(len(self.array)):
             curPos = (col,0)
             count = 0
-            while curPos[0]<2*self.victoryLength+1 and curPos[1]<2*self.victoryLength+1:
+            while curPos[0]<2*self.victoryLength-1 and curPos[1]<2*self.victoryLength-1:
                 # empty case 
                 curCol = curPos[0]
                 curRow = curPos[1]
