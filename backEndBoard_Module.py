@@ -50,6 +50,34 @@ class BackEndBoard:
         curColumn.append(chip)
         self.moveList.append((str(chip), column))
 
+    def removeChip(self, column: int, chip: InterFaceChip):
+        """
+        @param column, column we are placing chip in
+        @param chip, chip we are placing in board
+        @exceptions, if column is full do nothing
+        """
+        curColumn = self.array[column]
+        curColumn.pop()
+
+
+    def tryPlaceChip(self, column: int, chip: InterFaceChip):
+        """
+        @param column, column we are placing chip in
+        @param chip, chip we are placing in board
+        @exceptions, if column is full do nothing
+        """
+        curColumn = self.array[column]
+        if len(curColumn) == 2*self.victoryLength-1:
+            return
+        curColumn.append(chip)
+        self.moveList.append((str(chip), column))
+        if self.victoryCheck(self, chip):
+            self.removeChip(column)
+            return True
+        else:
+            self.removeChip(column)
+        
+
     def victoryCheck(self, chip: InterFaceChip)->bool:
         """
         @returns bool, returns true if chip of type str(chip) has won
@@ -64,7 +92,14 @@ class BackEndBoard:
             return True
         return False
                     
-    
+    def noMoves(self):
+        for column in self.array:
+            if len(column) < 2*self.victoryLength-1:
+                return False
+            
+        return True
+
+
     def showColumn(self, column: int)->list[str]:
         """
         @returns list of chip toStrings
