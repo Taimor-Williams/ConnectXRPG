@@ -91,13 +91,16 @@ class BackEndBoard:
         if self._downDiagonalVictoryCheck(chip):
             return True
         return False
-                    
-    def noMoves(self):
-        for column in self.array:
+  
+    def validMoves(self)->list[int]:
+        """
+        @returns, list of valid columns to place chips in
+        """
+        validMoveList = []
+        for col, column in enumerate(self.array):
             if len(column) < 2*self.victoryLength-1:
-                return False
-            
-        return True
+                validMoveList.append(col)
+        return validMoveList
 
 
     def showColumn(self, column: int)->list[str]:
@@ -145,41 +148,28 @@ class BackEndBoard:
                     returnStr = returnStr+ '\n'
         return returnStr
     
-    def showBoardList(self)-> [int]:
+    def showBoardList(self)->list[list[int]]:
         """
-        @params void
-        @returns a list representation of graph
-        example reps: 
-            empty board victoryLength == 2
-
-            empty board victoryLength == 2, red victory
-                0   0   0   0   0
-                0   0   0   0   0
-                0   0   0   0   0
-                0   0   0   0   2
-                0   0   0   1   2
+        @returns, the current board as a 2x2 matrix of length victoryLength*2-1 by victoryLength*2-1
+        empty squares are 0, blackChips are represented with 1, reed chips with 2
         """
-        returnList = []
-        for _ in range(2*self.victoryLength-1):
-            returnList.append([])
-        strBoard = self.showBoard()
-        strBoardList = strBoard.split()
-        count = 0
-        while count < (2*self.victoryLength-1)*(2*self.victoryLength-1):
-            for curStr in strBoardList:
-                # print(math.floor(count/(2*self.victoryLength-1)))
-                curList = returnList[math.floor(count/(2*self.victoryLength-1))]
-                rowList =curList
-                if curStr == 'empty':
-                    rowList.append(0)
-                    count +=1
-                if curStr == 'R':
-                    rowList.append(2)
-                    count +=1
-                if curStr == 'B':
-                    rowList.append(1)
-                    count +=1
-        return returnList
+        # make a board
+        returnBoard = []
+        for _ in range(self.victoryLength*2-1):
+            newList = []
+            for _ in range(self.victoryLength*2-1):
+                newList.append(0)
+            returnBoard.append(newList)
+        # append the board array to the final product
+        for row, stack in enumerate(self.array):
+            for col, chip in enumerate(stack):
+                finalCol = row
+                finalRow = self.victoryLength*2-2-col
+                if isinstance(chip, RedChip):
+                    returnBoard[finalRow][finalCol] = 2
+                else:
+                    returnBoard[finalRow][finalCol] = 1
+        return returnBoard
     
     def saveGameStr(self):
         """
