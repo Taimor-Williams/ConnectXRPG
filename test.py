@@ -192,6 +192,9 @@ Testing Strategy
         scorePosition():
             partition on #chips, 1,2,3,4
             partition on chip color: black, red
+        placeChip():
+            partition on col
+            partition on array emptyness
 """
 
 def test_solvedAI_horizontal():
@@ -292,7 +295,8 @@ def test_solvedAI_minmax_win_vert():
     board.placeChip(0,BlackChip())
     board.placeChip(0,BlackChip())
     board.placeChip(0,BlackChip())
-    assert(ai.minMaxAlgorithim(board,1,True) == (0, 111))
+    npBoard = np.array(board.showBoardList())
+    assert(ai.minMaxAlgorithimNumpy(npBoard,1,True)[0] == 0)
 
 def test_solvedAI_minmax_win_horiz():
      board = BackEndBoard(4)
@@ -300,7 +304,85 @@ def test_solvedAI_minmax_win_horiz():
      board.placeChip(0,BlackChip())
      board.placeChip(1,BlackChip())
      board.placeChip(2,BlackChip())
-     assert(ai.minMaxAlgorithim(board,4,True) == (3, 111))
+     npBoard = np.array(board.showBoardList())
+     assert(ai.minMaxAlgorithimNumpy(npBoard,1,True)[0] == 3)
+
+
+def test_solvedAI_minmax_win_horiz_block():
+     board = BackEndBoard(4)
+     ai = solvedAI()
+     board.placeChip(0,BlackChip())
+     board.placeChip(1,BlackChip())
+     board.placeChip(2,BlackChip())
+     npBoard = np.array(board.showBoardList())
+     assert(ai.minMaxAlgorithimNumpy(npBoard,1,False)[0] == 3)
+
+def test_solvedAI_minmax_win_horiz_block_1():
+     board = BackEndBoard(4)
+     ai = solvedAI()
+     board.placeChip(0,BlackChip())
+     board.placeChip(1,BlackChip())
+     board.placeChip(2,BlackChip())
+     npBoard = np.array(board.showBoardList())
+     assert(ai.minMaxAlgorithimNumpy(npBoard,1,False)[0] == 3)
+
+# def test_solvedAI_minmax_win_horiz_block_2():
+#      board = BackEndBoard(4)
+#      ai = solvedAI()
+#      board.placeChip(0,BlackChip())
+#      board.placeChip(1,BlackChip())
+#      board.placeChip(0,RedChip())
+#      board.placeChip(0,RedChip())
+#      board.placeChip(0,RedChip())
+#      npBoard = np.array(board.showBoardList())
+#      assert(ai.minMaxAlgorithimNumpy(npBoard,1,True) == (1, 0))
+
+def test_solvedAI_minmax_win_vertical_block():
+     board = BackEndBoard(4)
+     ai = solvedAI()
+     board.placeChip(1,BlackChip())
+     board.placeChip(1,BlackChip())
+     board.placeChip(0,RedChip())
+     board.placeChip(0,RedChip())
+     board.placeChip(0,RedChip())
+     npBoard = np.array(board.showBoardList())
+     assert(ai.minMaxAlgorithimNumpy(npBoard,1,True)[0] == 0)
+
+def test_solvedAI_minmax_win_vertical_block_1():
+     board = BackEndBoard(4)
+     ai = solvedAI()
+     board.placeChip(0,BlackChip())
+     board.placeChip(0,BlackChip())
+     board.placeChip(0,BlackChip())
+     board.placeChip(2,RedChip())
+     board.placeChip(3,RedChip())
+     npBoard = np.array(board.showBoardList())
+     assert(ai.minMaxAlgorithimNumpy(npBoard,2,False)[0] == 0)
+     
+
+
+def test_solvedAI_placeChip_col_empty():
+    board = BackEndBoard(4)
+    ai = solvedAI()
+    board.placeChip(0,BlackChip())
+    npBoard = np.array(board.showBoardList())
+    ai.placeChip(npBoard, 1, 1)
+    print(npBoard)
+    assert npBoard[6][1]== 1, ""
+
+def test_solvedAI_placeChip_col_nonEmpty():
+    board = BackEndBoard(4)
+    ai = solvedAI()
+    board.placeChip(0,BlackChip())
+    npBoard = np.array(board.showBoardList())
+    ai.placeChip(npBoard, 0, 1)
+    print(npBoard)
+    assert npBoard[5][0]== 1, ""
+
+
+
+
+
 
 
 

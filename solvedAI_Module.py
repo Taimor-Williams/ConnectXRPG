@@ -1,6 +1,6 @@
 from chip_Module import *
 from backEndBoard_Module import *
-import numpy
+import numpy as np
 import random
 import copy 
 
@@ -85,7 +85,7 @@ class solvedAI():
         # Prioritise blocking an opponent's winning move (but not over bot winning)
         # Minimax makes this less important
         if window.count(opponentPiece) == 3 and window.count(empty) == 1:
-            score -= 4
+            score -= 6
 
         return score
     
@@ -113,7 +113,7 @@ class solvedAI():
         @param board, 
         @returns 
         """
-        boardArray = numpy.asarray(board.showBoardList())
+        boardArray = np.asarray(board.showBoardList())
         rowCount = len(boardArray)
         colCount =  len(boardArray[0])
         score = 0
@@ -292,6 +292,188 @@ class solvedAI():
             # print(copyBoard.showBoardList())
             # print(minColumn,minEval)
             return minColumn,minEval
+    
+
+    # now we are doing same thing but using ndarray 
+
+    def isTerminalNump(self, board: np.ndarray, chip: InterFaceChip)->bool:
+        """
+        @param board, array of board position
+        @returns, whether the board is in terminal state or not
+        """
+        piece = 2
+        if isinstance(chip, BlackChip):
+            piece = 1
+        
+
+        totalRows, totalColumns = np.shape(board)
+        # Check valid horizontal locations for win
+        for c in range(totalColumns - 3):
+            for r in range(totalRows):
+                if board[r][c] == piece and board[r][c + 1] == piece and board[r][c + 2] == piece and board[r][c + 3] == piece:
+                    return True
+
+        # Check valid vertical locations for win
+        for c in range(totalColumns):
+            for r in range(totalRows - 3):
+                if board[r][c] == piece and board[r + 1][c] == piece and board[r + 2][c] == piece and board[r + 3][c] == piece:
+                    return True
+
+        # Check valid positive diagonal locations for win
+        for c in range(totalColumns - 3):
+            for r in range(totalRows - 3):
+                if board[r][c] == piece and board[r + 1][c + 1] == piece and board[r + 2][c + 2] == piece and board[r + 3][c + 3] == piece:
+                    return True
+
+        # check valid negative diagonal locations for win
+        for c in range(totalColumns - 3):
+            for r in range(3, totalRows):
+                if board[r][c] == piece and board[r - 1][c + 1] == piece and board[r - 2][c + 2] == piece and board[r - 3][c + 3] == piece:
+                    return True
+    
+
+
+    def windowNump(self, board: np.ndarray):
+        """
+        @param board, array of board position
+        """
+
+    def scorePositionNumpy(self, board: np.ndarray, piece: InterFaceChip):
+        """
+        @param board,
+        @param piece, 
+        """
+        totalRows, totalColumns = np.shape(board)
+        windowLength = 4
+        score = 0
+
+        # Score centre column
+        # centre_array = [int(i) for i in list(board[:, totalColumns // 2])]
+        # centre_count = centre_array.count(piece)
+        # score += centre_count * 3
+
+        # Score horizontal positions
+        for r in range(totalRows):
+            row_array = [int(i) for i in list(board[r, :])]
+            for c in range(totalColumns - 3):
+                # Create a horizontal window of 4
+                window = row_array[c:c + windowLength]
+                score += self.evaluateWindow(window, piece)
+
+        # Score vertical positions
+        for c in range(totalColumns):
+            col_array = [int(i) for i in list(board[:, c])]
+            for r in range(totalRows - 3):
+                # Create a vertical window of 4
+                window = col_array[r:r + windowLength]
+                score += self.evaluateWindow(window, piece)
+
+        # Score positive diagonals
+        for r in range(totalRows - 3):
+            for c in range(totalColumns - 3):
+                # Create a positive diagonal window of 4
+                window = [board[r + i][c + i] for i in range(windowLength)]
+                score += self.evaluateWindow(window, piece)
+
+        # Score negative diagonals
+        for r in range(totalRows - 3):
+            for c in range(totalColumns - 3):
+                # Create a negative diagonal window of 4
+                window = [board[r + 3 - i][c + i] for i in range(windowLength)]
+                score += self.evaluateWindow(window, piece)
+
+        return score
+    
+    def validMovesNumpy(self, board: np.ndarray)->list[int]:
+        """
+        @param board, board we are considering
+        @returns, list of moves we are considering
+        """
+        totalRows, totalColumns = np.shape(board)
+        validMoves = []
+        for col in range(totalColumns):
+            if self.isValidLocation(board, col):
+                validMoves.append(col)
+        return validMoves
+
+    def isValidLocation(self, board: np.ndarray, col:int):
+        """
+        @param board, board we are looking at
+        @param col, 
+        """
+        totalRows, totalColumns = np.shape(board)
+        return board[0][col] == 0
+    
+    def placeChip(self, board: np.ndarray, col: int, piece: int):
+        """
+        @param board, 
+        @param row
+        @param col
+        """
+        # print(board)
+        totalChips = 0
+        totalRows, totalColumns = np.shape(board)
+        curColumn: list= list(board[:, col])
+        totalBlackChips = curColumn.count(1)
+        totalRedChips = curColumn.count(2)
+        totalChips += totalRedChips+totalBlackChips
+        # print(curColumn)
+        # print(totalChips)
+        # print(totalRows-totalChips-1, col)
+        board[totalRows-totalChips-1][col] = piece
+        
+
+    
+    def minMaxAlgorithimNumpy(self, board: np.ndarray, depth: int, maximizingPlayer: bool)->tuple[int, int]:
+        """
+        @position, current board position
+        @depth, how many moves ahead are we considering
+        @maximaizingPlayer, are you black or red, black wants high value, red wants low value
+        @returns move made represented by column then score at that resulting board position
+        """
+        if depth == 0 or self.isTerminalNump(board, BlackChip()) or self.isTerminalNump(board, RedChip()):
+            # print(board.showBoardList())
+            # print((None, self.scorePosition(board, BlackChip()) - self.scorePosition(board,RedChip())))
+            # print((None, self.scorePositionNumpy(board, BlackChip()) - self.scorePositionNumpy(board,RedChip())))
+            # print('Black', self.scorePositionNumpy(board, BlackChip()))
+            # print('Red', self.scorePositionNumpy(board, RedChip()))
+            return (None, self.scorePositionNumpy(board, BlackChip()) - self.scorePositionNumpy(board,RedChip()))
+        
+        validMoves = self.validMovesNumpy(board)
+        
+
+        if maximizingPlayer:
+            maxEval = -float('inf')
+            maxColumn = 0
+            for col in validMoves:
+                copyBoard = copy.deepcopy(board)
+                self.placeChip(copyBoard,col, 1)
+                
+                eval = self.minMaxAlgorithimNumpy(copyBoard,depth-1,False)[1]
+                if eval > maxEval:
+                    maxEval = eval
+                    maxColumn = col
+                    # print(maxColumn,maxEval)
+             
+            # print(copyBoard.showBoardList())
+            # print(maxColumn,maxEval)
+            return maxColumn,maxEval
+        
+        if not maximizingPlayer:
+            minEval = float('inf')
+            minColumn = 0
+            for col in validMoves:
+                copyBoard = copy.deepcopy(board)
+                self.placeChip(copyBoard,col, 2)
+                eval = self.minMaxAlgorithimNumpy(copyBoard,depth-1,True)[1]
+                if eval < minEval:
+                    minEval = eval
+                    minColumn = col
+            return minColumn,minEval
+
+
+    
+
         
 
         

@@ -4,6 +4,7 @@ import tkinter as tk
 import csv  
 from tkinter.filedialog import askdirectory
 import pandas as pd
+from solvedAI_Module import *
 
 class SingletonPattern():
     """
@@ -65,7 +66,10 @@ class SingletonPattern():
         """
         @effects, calls the clicked function for all buttons and frames
         """
-        self.frontEndgameBoard.clicked(mousePos)
+        if self.frontEndgameBoard._isClicked(mousePos):
+            self.frontEndgameBoard.clicked(mousePos)
+            self.frontEndgameBoard._nextChip()
+            self._makeMoveAI()
         # buttons
         if self.restartButton.isClicked(mousePos):
             self._restartButtonEffect()
@@ -75,7 +79,19 @@ class SingletonPattern():
             self.saveGame()
         if self.loadButton.isClicked(mousePos):
             self.loadGame()
+    
+    def _makeMoveAI(self):
+        """
         
+        """
+        Ai = solvedAI()
+        backEndBoard = self.frontEndgameBoard.board
+        npBoard = np.array(backEndBoard.showBoardList())
+        move,score = Ai.minMaxAlgorithimNumpy(npBoard,2,False)
+        print(npBoard)
+        print(move,score)
+        backEndBoard.placeChip(move, RedChip())
+
     # popups
 
     # buttonEffects

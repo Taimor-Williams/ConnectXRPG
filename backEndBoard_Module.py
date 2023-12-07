@@ -1,5 +1,6 @@
 from chip_Module import *
 import math
+import numpy as np
 
 class BackEndBoard:
 
@@ -101,6 +102,126 @@ class BackEndBoard:
             if len(column) < 2*self.victoryLength-1:
                 validMoveList.append(col)
         return validMoveList
+
+    def restart(self):
+        """
+        @effects, reset board to base value
+        """
+        self.array = []
+        self.moveList = []
+        for _ in range(2*self.victoryLength-1):
+            self.array.append([])
+    ############
+    # for ML start
+    ############
+    def MLplaceChip(self, col: int, chip: InterFaceChip)->(int, bool, int):
+        """
+        @returns reward, done, score
+        @returns reward, unsure
+        @returns done, is game over
+        @returns score, unsure 
+        """
+        prevNumpyBoard = np.array(self.showBoardList())
+        self.placeChip(col, chip)
+        numpyBoard = np.array(self.showBoardList())
+        done: bool = self.victoryCheck(RedChip()) or self.victoryCheck(BlackChip())
+        if isinstance(chip, BlackChip):
+            reward: int = self.scorePositionNumpy(numpyBoard, BlackChip()) - self.scorePositionNumpy(prevNumpyBoard, BlackChip()) #how good of a move it made
+            score: int = self.scorePositionNumpy(numpyBoard, BlackChip())- self.scorePositionNumpy(numpyBoard, RedChip())#score from it's perspective
+        else:
+            reward: int = self.scorePositionNumpy(numpyBoard, RedChip()) - self.scorePositionNumpy(prevNumpyBoard, RedChip()) #how good of a move it made
+            score: int = self.scorePositionNumpy(numpyBoard, RedChip())- self.scorePositionNumpy(numpyBoard, BlackChip())#score from it's perspective
+       
+        return (reward, done, score)
+
+    def ML(self):
+        """
+        """
+    def scorePositionNumpy(self, board: np.ndarray, piece: InterFaceChip):
+        """
+        @param board,
+        @param piece, 
+        """
+        totalRows, totalColumns = np.shape(board)
+        windowLength = 4
+        score = 0
+
+        # Score centre column
+        # centre_array = [int(i) for i in list(board[:, totalColumns // 2])]
+        # centre_count = centre_array.count(piece)
+        # score += centre_count * 3
+
+        # Score horizontal positions
+        for r in range(totalRows):
+            row_array = [int(i) for i in list(board[r, :])]
+            for c in range(totalColumns - 3):
+                # Create a horizontal window of 4
+                window = row_array[c:c + windowLength]
+                score += self.evaluateWindow(window, piece)
+
+        # Score vertical positions
+        for c in range(totalColumns):
+            col_array = [int(i) for i in list(board[:, c])]
+            for r in range(totalRows - 3):
+                # Create a vertical window of 4
+                window = col_array[r:r + windowLength]
+                score += self.evaluateWindow(window, piece)
+
+        # Score positive diagonals
+        for r in range(totalRows - 3):
+            for c in range(totalColumns - 3):
+                # Create a positive diagonal window of 4
+                window = [board[r + i][c + i] for i in range(windowLength)]
+                score += self.evaluateWindow(window, piece)
+
+        # Score negative diagonals
+        for r in range(totalRows - 3):
+            for c in range(totalColumns - 3):
+                # Create a negative diagonal window of 4
+                window = [board[r + 3 - i][c + i] for i in range(windowLength)]
+                score += self.evaluateWindow(window, piece)
+
+        return score
+        
+    def evaluateWindow(self, window: list[int], chipColor: InterFaceChip)->int:
+        """
+        @param window, sequence of four squares being checked for victory
+        @param chipColor, color AI is playing
+        @returns, score of the window for that chipColor perspective
+        """
+        score = 0
+        empty = 0
+        # Switch scoring based on turn
+        piece = 1
+        opponentPiece = 2
+        if isinstance(chipColor,RedChip):
+            piece = 2
+            opponentPiece = 1
+        
+            
+
+        # Prioritise a winning move
+        # Minimax makes this less important
+        if window.count(piece) == 4:
+            score += 100
+        # Make connecting 3 second priority
+        elif window.count(piece) == 3 and window.count(empty) == 1:
+            score += 5
+        # Make connecting 2 third priority
+        elif window.count(piece) == 2 and window.count(empty) == 2:
+            score += 2
+        # Prioritise blocking an opponent's winning move (but not over bot winning)
+        # Minimax makes this less important
+        if window.count(opponentPiece) == 3 and window.count(empty) == 1:
+            score -= 6
+
+        return score
+    
+    ########################
+    # for ML end
+    ########################
+    
+
 
 
     def showColumn(self, column: int)->list[str]:

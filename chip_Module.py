@@ -48,6 +48,11 @@ class BlackChip(InterFaceChip):
     def __str__(self):
         return 'B'
 
+class EmptyChip(InterFaceChip):
+    """
+    
+    """
+
 
     
     
