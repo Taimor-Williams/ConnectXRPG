@@ -17,11 +17,11 @@ class Agent():
     """
     def __init__(self) -> None:
         self.number_games =0
-        self.epsilon = 0 # randomness 
-        self.gamma = 0.9 #discount rate <1
+        self.epsilon = 1 # randomness 
+        self.gamma = 0.95 #discount rate <1
         self.memory = deque(maxlen=maxMemory)
         inputSize = 7*7 #size of the state
-        hiddenSize = 300 # can be anything
+        hiddenSize = 600 # can be anything
         outputsize = 7 # size of the actions you can make
         self.model = LinearQNet(inputSize, hiddenSize, outputsize)
         self.trainer = QTrainer(self.model, lr =LR, gamma= self.gamma)
@@ -148,8 +148,78 @@ def train():
             plotMeanScores.append(meanScore)
             plot(plotScores, plotMeanScores)
 
+
+
+def mainLoop():
+    totalGames = 0
+    plotScores = []
+    plotMeanScores = []
+    totalScore = 0
+    record = 0
+    agent = Agent()
+    opp = solvedAI()
+    game = BackEndBoard(4)
+    # wins by both colors
+    redCount =0
+    blackCount =0 
+    while totalGames < 100:
+        state = agent.getState(game)
+        totalReward = 0
+        while not (game.victoryCheck(RedChip()) or game.victoryCheck(BlackChip())):
+            # opps move
+            npBoard = np.array(game.showBoardList())
+            move = opp.minMaxAlgorithimNumpy(npBoard,1,True)[0]
+            print('AImove', move)
+            game.placeChip(move, BlackChip())
+            state = agent.getState(game)
+            oldScore = game.mlScore(RedChip())
+
+            if not (game.victoryCheck(RedChip()) or game.victoryCheck(BlackChip())):
+
+                # agents move
+                finalMove = agent.getAction(state)
+                game.placeChip(finalMove, RedChip())
+                print('MLmove', finalMove)
+
+           
+            score = game.mlScore(RedChip())
+            stateNew = agent.getState(game)
+            # reward = 1 if game.victoryCheck(RedChip()) else 0
+            reward = score - oldScore
+            if game.victoryCheck(BlackChip()):
+                reward = oldScore
+            print('reward', reward)
+            print(np.array(game.showBoardList()))
+            done = (game.victoryCheck(RedChip()) or game.victoryCheck(BlackChip()))
+
+            #train memory
+            agent.trainShortMemory(state, finalMove, reward, stateNew, done)
         
+            #remember
+            agent.remember(state, finalMove, reward, stateNew, done)
+            state = stateNew
+            totalReward +=reward
+
+        # when game is over
+        print('Game!')
+        totalGames +=1
+        score = game.mlScore(RedChip())
+        game.restart()
+        agent.number_games +=1
+        agent.trainLongMemory()
+
+        if score > record:
+            record = score 
+        print("Game", agent.number_games, 'Score', score, 'Record', record )
+        print(blackCount, redCount)
+        # TODO: plot 
+        plotScores.append(score)
+        print('Score:{score}')
+        totalScore +=score
+        meanScore =totalScore/agent.number_games
+        plotMeanScores.append(meanScore)
+        plot(plotScores, plotMeanScores)
 
 if __name__ == '__main__':
-    train()
+    mainLoop()
 

@@ -133,6 +133,17 @@ class BackEndBoard:
             score: int = self.scorePositionNumpy(numpyBoard, RedChip())- self.scorePositionNumpy(numpyBoard, BlackChip())#score from it's perspective
        
         return (reward, done, score)
+    
+    def mlScore(self, chip: InterFaceChip)->int:
+        """
+        
+        """
+        numpyBoard = np.array(self.showBoardList())
+        if isinstance(chip, BlackChip):
+            score: int = self.scorePositionNumpy(numpyBoard, BlackChip())- self.scorePositionNumpy(numpyBoard, RedChip())#score from it's perspective
+        else:
+            score: int = self.scorePositionNumpy(numpyBoard, RedChip())- self.scorePositionNumpy(numpyBoard, BlackChip())#score from it's perspective
+        return score
 
     def ML(self):
         """
